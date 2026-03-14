@@ -8,7 +8,18 @@ const setupProfile = async (req, res) => {
 
     const userId = req.user.id;
 
-    const profile = req.body;
+   const profile = {
+  age: Number(req.body.age),
+  sex: req.body.sex,
+  weight: Number(req.body.weight),
+  height: Number(req.body.height),
+  bmi: req.body.bmi ? Number(req.body.bmi) : null,
+  hba1c: Number(req.body.hba1c),
+  medicationId: Number(req.body.medicationId || req.body.medication),
+  jobTypeId: Number(req.body.jobTypeId || req.body.jobType)
+};
+
+    console.log("PROFILE DATA:", profile);
 
     // calculate BMI if missing
     if (!profile.bmi) {

@@ -10,6 +10,8 @@ const mealscanRoutes = require("./routes/mealscan.routes");
 
 const profileRoutes = require("./routes/profile.routes");
 
+const optionsRoutes = require("./routes/options.routes");
+
 const app = express();
 
 connectDB();
@@ -24,6 +26,8 @@ app.use("/api/mealscan", mealscanRoutes);
 app.use("/api/auth", authRoutes);
 
 app.use("/api/profile", profileRoutes);
+
+app.use("/api/options", optionsRoutes);
 
 const PORT = process.env.PORT || 5000;
 
