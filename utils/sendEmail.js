@@ -1,17 +1,21 @@
 const nodemailer = require("nodemailer");
+const dns = require("dns");
+
+// force Node to use IPv4 instead of IPv6
+dns.setDefaultResultOrder("ipv4first");
 
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false,
+  family: 4,   // force IPv4
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
   },
-  pool: true,              // keeps connection open
-  maxConnections: 5,
-  maxMessages: 100,
-  connectionTimeout: 5000,
-  greetingTimeout: 5000,
-  socketTimeout: 5000
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 10000
 });
 
 const sendEmail = async (to, subject, text) => {
@@ -26,13 +30,9 @@ const sendEmail = async (to, subject, text) => {
 
     console.log("✅ Email sent:", info.response);
 
-    return true;
-
   } catch (error) {
 
     console.error("❌ Email error:", error.message);
-
-    return false;
 
   }
 };
