@@ -1,6 +1,7 @@
 const User = require("../models/user.model");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const sendEmail = require("../utils/sendEmail");
 
 
 // REGISTER
@@ -27,12 +28,28 @@ const register = async (req, res) => {
       password: hashedPassword
     });
 
-    await user.save();
+   await user.save();
 
-    res.json({
-      success: true,
-      message: "User registered successfully"
-    });
+// SEND WELCOME EMAIL
+
+await sendEmail(
+  email,
+  "Welcome to Pfelix CGM 🎉",
+  `Hello ${name},
+
+Your account has been successfully created on Pfelix CGM.
+
+You can now start scanning meals and tracking glucose predictions.
+
+Thank you for joining Pfelix!
+
+- Pfelix Team`
+);
+
+res.json({
+  success: true,
+  message: "User registered successfully"
+});
 
   } catch (error) {
 
@@ -93,7 +110,6 @@ const login = async (req, res) => {
 };
 
 //Forgot password
-const sendEmail = require("../utils/sendEmail");
 
 const forgotPassword = async (req, res) => {
 

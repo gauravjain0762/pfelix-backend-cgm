@@ -1,3 +1,4 @@
+const User = require("../models/user.model");
 const MealScan = require("../models/mealscan.model");
 const analyzeMeal = require("../services/openai.service");
 
@@ -5,8 +6,6 @@ const predictMeal = async (req, res) => {
   try {
 
     const userId = req.user.id;
-
-    const { user_profile, meal_context } = req.body;
 
     if (!req.file) {
       return res.status(400).json({
@@ -34,8 +33,23 @@ const predictMeal = async (req, res) => {
 
     const imageUrl = req.file.path; //cloudinary url
 
-    const userProfile = JSON.parse(user_profile);
-    const mealContext = JSON.parse(meal_context);
+    const user = await User.findById(userId);
+
+    if (!user || !user.userProfile) {
+      return res.status(400).json ({
+        success:false,
+        message: "User profile not setup"
+      });
+    }
+
+    const userProfile = user.userProfile;
+
+    // optional meal context
+
+    const mealContext = {
+      meal_type: req.body.meal_type || "meal",
+      notes: req.body.notes || ""
+    };
 
     // CALL AI
 

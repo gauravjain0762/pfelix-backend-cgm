@@ -8,6 +8,8 @@ const authRoutes = require("./routes/auth.routes")
 
 const mealscanRoutes = require("./routes/mealscan.routes");
 
+const glucoseRoutes = require("./routes/glucose.routes");
+
 const profileRoutes = require("./routes/profile.routes");
 
 const optionsRoutes = require("./routes/options.routes");
@@ -24,6 +26,8 @@ app.use("/uploads", express.static("uploads"));
 app.use("/api/mealscan", mealscanRoutes);
 
 app.use("/api/auth", authRoutes);
+
+app.use("/api/glucose", glucoseRoutes);
 
 app.use("/api/profile", profileRoutes);
 
