@@ -29,6 +29,11 @@ const register = async (req, res) => {
     });
 
    await user.save();
+   
+   res.json({
+  success: true,
+  message: "User registered successfully"
+});
 
 // SEND WELCOME EMAIL
 
@@ -46,10 +51,7 @@ Thank you for joining Pfelix!
 - Pfelix Team`
 );
 
-res.json({
-  success: true,
-  message: "User registered successfully"
-});
+
 
   } catch (error) {
 
@@ -133,16 +135,17 @@ const forgotPassword = async (req, res) => {
 
     await user.save();
 
-    await sendEmail(
-      user.email,
-      "Password Reset OTP",
-      `Your OTP is: ${otp}`
-    );
-
-    res.json({
+     res.json({
       success: true,
       message: "OTP sent to email"
     });
+
+      sendEmail(
+      user.email,
+      "Password Reset OTP",
+      `Your OTP is: ${otp}`
+    ).catch(console.error);
+
 
   } catch (error) {
 
