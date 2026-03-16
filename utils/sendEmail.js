@@ -1,28 +1,39 @@
 const nodemailer = require("nodemailer");
 
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
+  service: "gmail",
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
   },
-  connectionTimeout: 10000,
-  greetingTimeout: 10000,
-  socketTimeout: 10000
+  pool: true,              // keeps connection open
+  maxConnections: 5,
+  maxMessages: 100,
+  connectionTimeout: 5000,
+  greetingTimeout: 5000,
+  socketTimeout: 5000
 });
 
 const sendEmail = async (to, subject, text) => {
   try {
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
+
+    const info = await transporter.sendMail({
+      from: `"Pfelix CGM" <${process.env.EMAIL_USER}>`,
       to,
       subject,
       text
     });
+
+    console.log("✅ Email sent:", info.response);
+
+    return true;
+
   } catch (error) {
-    console.error("Email error:", error);
+
+    console.error("❌ Email error:", error.message);
+
+    return false;
+
   }
 };
 
