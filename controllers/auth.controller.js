@@ -149,12 +149,14 @@ const forgotPassword = async (req, res) => {
 
   } catch (error) {
 
-    res.status(500).json({
-      success: false,
-      message: "Server error"
-    });
+  console.error("Forgot password error:", error);
 
-  }
+  res.status(500).json({
+    success: false,
+    message: error.message
+  });
+
+}
 };
 
 const verifyOtp = async (req, res) => {
