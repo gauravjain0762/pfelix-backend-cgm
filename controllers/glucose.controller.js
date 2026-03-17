@@ -5,6 +5,9 @@ const getBaselineGlucose = async (req, res) => {
 
   try {
 
+     console.log("Authorization Header:", req.headers.authorization);
+    console.log("User from token:", req.user);
+    
     const user = await User.findById(req.user.id);
 
     if (!user || !user.userProfile) {
