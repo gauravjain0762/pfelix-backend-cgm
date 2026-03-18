@@ -24,9 +24,16 @@ const userSchema = new mongoose.Schema(
         userProfile: {
   type: Object,
   default: {}
-        }
+        },
+        notifications: {
+  postMealWalkReminder: {
+    type: Boolean,
+    default: true
+  }
+},
     },
     { timestamps: true }
 );
+
 
 module.exports = mongoose.model("User", userSchema);

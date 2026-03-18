@@ -110,4 +110,61 @@ console.log("UPDATED USER:", updatedUser);
   }
 };
 
-module.exports = { setupProfile, getProfile };
+const updateProfile = async (req, res) => {
+  try {
+
+    const userId = req.user.id;
+
+    const updates = req.body;
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
+    const profile = {
+      ...user.userProfile,
+      ...updates
+    };
+
+    // recalculate BMI
+
+    if (profile.weight && profile.height) {
+      const heightMeters = profile.height / 100;
+      profile.bmi = profile.weight / (heightMeters * heightMeters);
+    }
+
+    // recalculate calories
+
+    const result = calculateCalories(profile);
+
+    profile.dailyCalories = result.dailyCalories;
+
+    user.userProfile = profile;
+
+    await user.save();
+
+    res.json({
+      success: true,
+      message: "Profile updated",
+      profile,
+      mealBudget: result.mealBudget
+    });
+
+  } catch (error) {
+
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      message: "Server error"
+    });
+
+  }
+};
+
+module.exports = { setupProfile, getProfile, updateProfile };

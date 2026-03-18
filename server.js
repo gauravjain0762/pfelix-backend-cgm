@@ -25,6 +25,9 @@ const insightsRoutes = require("./routes/insights.routes");
 
 const logRoutes = require("./routes/log.routes");
 
+const settingsRoutes = require("./routes/settings.routes");
+
+
 
 connectDB();
 
@@ -47,6 +50,8 @@ app.use("/api/activity", activityRoutes);
 app.use("/api/insights", insightsRoutes);
 
 app.use("/api/logs", logRoutes);
+
+app.use("/api/settings", settingsRoutes);
 
 const PORT = process.env.PORT || 5000;
 
