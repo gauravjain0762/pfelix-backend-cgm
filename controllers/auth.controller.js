@@ -28,34 +28,43 @@ const register = async (req, res) => {
       password: hashedPassword
     });
 
-   await user.save();
+    await user.save();
 
-   // SEND WELCOME EMAIL
+    // GENERATE TOKEN
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
 
-await sendEmail(
-  email,
-  "Welcome to Pfelix CGM 🎉",
-  `Hello ${name},
+    // SEND WELCOME EMAIL
+    await sendEmail(
+      email,
+      "Welcome to Pfelix CGM 🎉",
+      `Hello ${name},
 
 Your account has been successfully created on Pfelix CGM.
 
 You can now start scanning meals and tracking glucose predictions.
 
-Thank you for joining Pfelix!
-
 - Pfelix Team`
-);
+    );
 
-   
-   res.json({
-  success: true,
-  message: "User registered successfully"
-});
-
-
-
+    // RESPONSE
+    res.json({
+      success: true,
+      message: "User registered successfully",
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email
+      }
+    });
 
   } catch (error) {
+
+    console.error(error);
 
     res.status(500).json({
       success: false,
@@ -209,4 +218,58 @@ const resetPassword = async (req, res) => {
 
 };
 
-module.exports = { register, login, forgotPassword, verifyOtp, resetPassword };
+const deleteAccount = async (req, res) => {
+  try {
+
+    const userId = req.user.id;
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
+    const email = user.email;
+    const name = user.name;
+
+    // delete user
+    await User.findByIdAndDelete(userId);
+
+    // send deletion email
+    await sendEmail(
+      email,
+      "Account Deleted - Pfelix CGM",
+      `Hello ${name},
+
+Your Pfelix CGM account has been successfully deleted.
+
+If this was not requested by you or you want to recover your account,
+please contact our support team.
+
+Support Email: support@pfelix.com
+
+Thank you,
+Pfelix Team`
+    );
+
+    res.json({
+      success: true,
+      message: "Account deleted successfully"
+    });
+
+  } catch (error) {
+
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      message: "Server error"
+    });
+
+  }
+};
+
+module.exports = { register, login, forgotPassword, verifyOtp, resetPassword, deleteAccount };
