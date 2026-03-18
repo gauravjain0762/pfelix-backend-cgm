@@ -40,6 +40,15 @@ const getLogs = async (req, res) => {
 
       const peak = meal.aiResult?.glucose_prediction?.predicted_peak_mgdl || 0;
 
+const baseline = meal.aiResult?.glucose_prediction?.baseline_mgdl || 100;
+
+const impactValue = peak - baseline;
+
+const impact =
+  impactValue > 0
+    ? `+${impactValue}`
+    : `${impactValue}`;
+
       const suggestedSteps = meal.aiResult?.course_correction?.suggested_steps || 0;
 
       const stepsCompleted = activity?.stepsCompleted || 0;
@@ -58,7 +67,7 @@ const getLogs = async (req, res) => {
 
         mealName,
 
-        impact: peak,
+        impact,
 
         suggestedSteps,
 
