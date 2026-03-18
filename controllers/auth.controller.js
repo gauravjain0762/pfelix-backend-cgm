@@ -29,13 +29,8 @@ const register = async (req, res) => {
     });
 
    await user.save();
-   
-   res.json({
-  success: true,
-  message: "User registered successfully"
-});
 
-// SEND WELCOME EMAIL
+   // SEND WELCOME EMAIL
 
 await sendEmail(
   email,
@@ -50,6 +45,13 @@ Thank you for joining Pfelix!
 
 - Pfelix Team`
 );
+
+   
+   res.json({
+  success: true,
+  message: "User registered successfully"
+});
+
 
 
 
@@ -130,21 +132,21 @@ const forgotPassword = async (req, res) => {
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    user.resetOtp = otp;
-    user.otpExpiry = Date.now() + 10 * 60 * 1000;
+user.resetOtp = otp;
+user.otpExpiry = Date.now() + 10 * 60 * 1000;
 
-    await user.save();
+await user.save();
 
-     res.json({
-      success: true,
-      message: "OTP sent to email"
-    });
+await sendEmail(
+  user.email,
+  "Password Reset OTP",
+  `Your OTP is: ${otp}`
+);
 
-      sendEmail(
-      user.email,
-      "Password Reset OTP",
-      `Your OTP is: ${otp}`
-    ).catch(console.error);
+res.json({
+  success: true,
+  message: "OTP sent to email"
+});
 
 
   } catch (error) {
