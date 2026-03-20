@@ -1,63 +1,81 @@
-const cron = require("node-cron");
-const Activity = require("../models/activity.model");
-const User = require("../models/user.model");
-const sendNotification = require("../utils/sendNotification");
+const connectDB = require("../../config/db");
+const Activity = require("../../models/activity.model");
+const User = require("../../models/user.model");
+const sendNotification = require("../../utils/sendNotification");
 
-const checkActivities = async () => {
-  const now = new Date();
+export default async function handler(req, res) {
+  try {
+    await connectDB();
 
-  const activities = await Activity.find({
-    status: "active"
-  }).populate("userId");
+    const now = new Date();
 
-  console.log("Checking activities...");
+    console.log("🔥 VERCEL CRON RUNNING...");
 
-  for (let activity of activities) {
+    const activities = await Activity.find({
+      status: "active"
+    }).populate("userId");
 
-    const user = activity.userId;
+    for (let activity of activities) {
+      const user = activity.userId;
 
-    // skip if no token
-    if (!user?.deviceToken) continue;
+      // ✅ ALWAYS expire
+      if (now > activity.expiresAt) {
+        if (activity.status !== "expired") {
+          console.log("⏱ Expiring:", activity._id);
+          activity.status = "expired";
+        }
+      }
 
-    // skip if notifications OFF
-    if (!user?.notifications?.postMealWalkReminder) continue;
+      // skip if no user
+      if (!user) {
+        await activity.save();
+        continue;
+      }
 
-    const timePassed = now - activity.startedAt;
+      // skip if no token
+      if (!user.deviceToken) {
+        await activity.save();
+        continue;
+      }
 
-    const oneHour = 60 * 60 * 1000;
-    const twoHours = 2 * 60 * 60 * 1000;
+      // skip if notifications OFF
+      if (!user.notifications?.postMealWalkReminder) {
+        await activity.save();
+        continue;
+      }
 
-    //  1 hour notification
-    if (timePassed >= oneHour && !activity.notifiedAt1Hour) {
-        console.log("1 hour notification triggered");
-      await sendNotification(
-        user.deviceToken,
-        "Walk Reminder 🚶",
-        "You haven't walked yet. Start now!"
-      );
+      const timePassed = now - activity.startedAt;
 
-      activity.notifiedAt1Hour = true;
+      const oneHour = 60 * 60 * 1000;
+      const twoHours = 2 * 60 * 60 * 1000;
+
+      // 🔔 1 hour
+      if (timePassed >= oneHour && !activity.notifiedAt1Hour) {
+        await sendNotification(
+          user.deviceToken,
+          "Walk Reminder 🚶",
+          "You haven't walked yet. Start now!"
+        );
+        activity.notifiedAt1Hour = true;
+      }
+
+      // 🔔 2 hour
+      if (timePassed >= twoHours && !activity.notifiedAt2Hour) {
+        await sendNotification(
+          user.deviceToken,
+          "Activity Expired ⏱",
+          "Your walking window has expired."
+        );
+        activity.notifiedAt2Hour = true;
+      }
+
+      await activity.save();
     }
-    
 
-    //  2 hour notification + expire
-    if (timePassed >= twoHours && !activity.notifiedAt2Hour) {
-         console.log("2 hour notification triggered");
-      await sendNotification(
-        user.deviceToken,
-        "Activity Expired ⏱",
-        "Your walking window has expired."
-      );
+    res.status(200).json({ success: true });
 
-      activity.notifiedAt2Hour = true;
-      activity.status = "expired";
-    }
-
-    await activity.save();
+  } catch (error) {
+    console.error("❌ Cron error:", error);
+    res.status(500).json({ success: false });
   }
-};
-
-// run every 5 minutes
-cron.schedule("*/5 * * * *", checkActivities);
-
-module.exports = {};
+}
