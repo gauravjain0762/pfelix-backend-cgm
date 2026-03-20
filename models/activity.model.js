@@ -27,7 +27,17 @@ const activitySchema = new mongoose.Schema({
 
     startedAt: Date,
 
-    expiresAt: Date
+    expiresAt: Date,
+
+    notifiedAt1Hour: {
+        type: Boolean,
+        default: false
+    },
+
+    notifiedAt2Hour: {
+        type: Boolean,
+        default: false
+    }
 }, { timestamps: true });
 
 module.exports = mongoose.model("Activity", activitySchema);

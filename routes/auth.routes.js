@@ -8,7 +8,8 @@ const {
   forgotPassword,
   verifyOtp,
   resetPassword,
-  deleteAccount
+  deleteAccount,
+  saveDeviceToken
 } = require("../controllers/auth.controller");
 
 const authMiddleware = require("../middleware/auth.middleware");
@@ -22,6 +23,8 @@ router.post("/forgot-password", forgotPassword);
 router.post("/verify-otp", verifyOtp);
 
 router.post("/reset-password", resetPassword);
+
+router.post("/save-token", authMiddleware, saveDeviceToken);
 
 // DELETE ACCOUNT
 router.delete("/delete-account", authMiddleware, deleteAccount);

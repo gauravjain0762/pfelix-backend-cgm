@@ -21,6 +21,11 @@ const userSchema = new mongoose.Schema(
         resetOtp: String,
         otpExpiry: Date,
 
+        deviceToken: {
+            type: String,
+            default: null
+        },
+
         userProfile: {
   type: Object,
   default: {}

@@ -5,6 +5,7 @@ const app = express();
 const cors = require("cors");
 const connectDB = require("./config/db");
 
+require("./cron/activityCron")
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

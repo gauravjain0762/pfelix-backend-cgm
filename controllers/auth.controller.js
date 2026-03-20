@@ -272,4 +272,28 @@ Pfelix Team`
   }
 };
 
-module.exports = { register, login, forgotPassword, verifyOtp, resetPassword, deleteAccount };
+
+const saveDeviceToken = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { deviceToken } = req.body;
+
+    await User.findByIdAndUpdate(userId, {
+      deviceToken
+    });
+
+    res.json({
+      success: true,
+      message: "Device token saved"
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Server error"
+    });
+  }
+};
+
+
+module.exports = { register, login, forgotPassword, verifyOtp, resetPassword, deleteAccount, saveDeviceToken };
