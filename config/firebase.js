@@ -1,5 +1,8 @@
 const admin = require('firebase-admin');
-const serviceAccount = require('./serviceAccountKey.json');
+
+const serviceAccount = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY);
+
+serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, "\n");
 
 // Initialize Firebase Admin SDK
 
