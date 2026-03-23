@@ -1,23 +1,18 @@
-import connectDB from "../../config/db.js";
-import Activity from "../../models/activity.model.js";
-import User from "../../models/user.model.js";
-import sendNotification from "../../utils/sendNotification.js";
+const connectDB = require("../config/db");
+const Activity = require("../models/activity.model");
+const User = require("../models/user.model");
+const sendNotification = require("../utils/sendNotification");
 
-export default async function handler(req, res) {
-  // ✅ Allow only GET (Vercel cron uses GET)
-  if (req.method !== "GET") {
-    return res.status(405).json({ message: "Method Not Allowed" });
-  }
-
+const runCron = async () => {
   try {
     await connectDB();
 
     const now = new Date();
 
-    console.log("🔥 VERCEL CRON RUNNING...");
+    console.log("🔥 CRON RUNNING...");
 
     const activities = await Activity.find({
-      status: "active"
+      status: "active",
     }).populate("userId");
 
     console.log("Total active activities:", activities.length);
@@ -25,7 +20,7 @@ export default async function handler(req, res) {
     for (let activity of activities) {
       const user = activity.userId;
 
-      // ✅ STEP 1: ALWAYS EXPIRE (independent of notifications)
+      // ✅ expire activity
       if (now > activity.expiresAt) {
         if (activity.status !== "expired") {
           console.log("⏱ Expiring activity:", activity._id);
@@ -33,24 +28,8 @@ export default async function handler(req, res) {
         }
       }
 
-      // ✅ STEP 2: Notification logic
-
-      // skip if no user
-      if (!user) {
-        await activity.save();
-        continue;
-      }
-
-      // skip if no device token
-      if (!user.deviceToken) {
-        console.log("⚠️ No device token for user:", user._id);
-        await activity.save();
-        continue;
-      }
-
-      // skip if notifications OFF
-      if (!user.notifications?.postMealWalkReminder) {
-        console.log("🔕 Notifications OFF for user:", user._id);
+      // skip invalid user/token/settings
+      if (!user || !user.deviceToken || !user.notifications?.postMealWalkReminder) {
         await activity.save();
         continue;
       }
@@ -62,7 +41,7 @@ export default async function handler(req, res) {
 
       // 🔔 1-hour notification
       if (timePassed >= oneHour && !activity.notifiedAt1Hour) {
-        console.log("🔔 1 hour notification triggered:", activity._id);
+        console.log("🔔 1 hour notification:", activity._id);
 
         await sendNotification(
           user.deviceToken,
@@ -75,7 +54,7 @@ export default async function handler(req, res) {
 
       // 🔔 2-hour notification
       if (timePassed >= twoHours && !activity.notifiedAt2Hour) {
-        console.log("🔔 2 hour notification triggered:", activity._id);
+        console.log("🔔 2 hour notification:", activity._id);
 
         await sendNotification(
           user.deviceToken,
@@ -89,17 +68,9 @@ export default async function handler(req, res) {
       await activity.save();
     }
 
-    return res.status(200).json({
-      success: true,
-      message: "Cron executed successfully"
-    });
-
   } catch (error) {
     console.error("❌ Cron Error:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Cron failed"
-    });
   }
-}
+};
+
+module.exports = runCron;
