@@ -1,4 +1,10 @@
 {
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/server.js"
+    }
+  ],
   "crons": [
     {
       "path": "/api/cron/check-activities",

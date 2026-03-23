@@ -5,14 +5,11 @@ const app = express();
 const cors = require("cors");
 const connectDB = require("./config/db");
 
-// ✅ ADD THIS
-const cron = require("node-cron");
-const runCron = require("./cron/activityCron");
-
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Routes
 const authRoutes = require("./routes/auth.routes");
 const mealscanRoutes = require("./routes/mealscan.routes");
 const glucoseRoutes = require("./routes/glucose.routes");
@@ -26,14 +23,10 @@ const settingsRoutes = require("./routes/settings.routes");
 // DB
 connectDB();
 
-// ✅ CRON SCHEDULE (VERY IMPORTANT)
-cron.schedule("* * * * *", () => {
-  console.log("⏰ Cron triggered");
-  runCron();
-});
-
+// Static
 app.use("/uploads", express.static("uploads"));
 
+// APIs
 app.use("/api/mealscan", mealscanRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/glucose", glucoseRoutes);
@@ -44,8 +37,14 @@ app.use("/api/insights", insightsRoutes);
 app.use("/api/logs", logRoutes);
 app.use("/api/settings", settingsRoutes);
 
+// ✅ ONLY run locally
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+if (process.env.NODE_ENV !== "production") {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+// ✅ REQUIRED for Vercel
+module.exports = app;
