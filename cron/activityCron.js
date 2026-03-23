@@ -36,7 +36,7 @@ const runCron = async () => {
 
       const timePassed = now - activity.startedAt;
 
-      const oneHour = 60 * 60 * 1000;
+      const oneHour = 5 * 60 * 1000;
       const twoHours = 2 * 60 * 60 * 1000;
 
       // 🔔 1-hour notification
